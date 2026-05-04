@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a0f08" />
+  <meta name="description" content="Seven Stud Hi-Lo Trainer — 7-card stud hi-lo practice app, offline, virtual chips only" />
+  <title>Seven Stud Hi-Lo Trainer</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="app-root theme-retro">
+  <!-- 1. トップ（ロビー） -->
+  <div id="screenTop" class="app-screen screen-top" data-view="top">
+    <div class="lobby-bg" aria-hidden="true"></div>
+    <div class="lobby-inner">
+      <header class="lobby-header">
+        <h1 class="lobby-title">Seven Stud Hi-Lo Trainer</h1>
+        <p class="lobby-subtitle">7カードスタッド・ハイロー練習アプリ</p>
+        <div class="lobby-chip-badge" aria-label="現在のチップ">
+          <span class="chip-badge-label">あなたのチップ</span>
+          <span id="topChipCount" class="chip-badge-val">—</span>
+        </div>
+      </header>
+      <div class="lobby-main">
+        <button type="button" id="menuStartGame" class="btn-lobby-primary">ゲーム開始</button>
+        <p class="lobby-lead">仮想チップのみ・オフライン・換金不可の学習用アプリです。</p>
+      </div>
+      <nav class="lobby-menu" aria-label="メインメニュー">
+        <button type="button" id="menuRules" class="btn-lobby-secondary">ルール説明</button>
+        <button type="button" id="menuStats" class="btn-lobby-secondary">戦績</button>
+        <button type="button" id="menuHistory" class="btn-lobby-secondary">履歴</button>
+        <button type="button" id="btnChipRefillTop" class="btn-lobby-secondary">チップ補充（〜1000）</button>
+        <button type="button" id="menuResetSettings" class="btn-lobby-quiet">設定リセット</button>
+      </nav>
+      <p class="lobby-footnote">PWA 対応 · 外部通信なし</p>
+    </div>
+  </div>
+
+  <!-- 2. ゲーム開始前設定 -->
+  <div id="screenPreGame" class="app-screen screen-pregame" data-view="preGame" hidden>
+    <header class="screen-header">
+      <button type="button" id="preGameBack" class="btn-header-back" aria-label="戻る">← 戻る</button>
+      <h2 class="screen-title">対戦設定</h2>
+    </header>
+    <main class="screen-body pregame-body">
+      <p class="pregame-lead">ロビーで条件を選んでからテーブルへ進みます。</p>
+      <div class="settings-cards">
+        <div class="setting-card setting-card-primary">
+          <h3 class="setting-card-title">基本</h3>
+          <label class="field-label">CPU人数（1〜5）
+            <select id="setCpuCount" class="field-control">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </label>
+          <label class="field-label">初期チップ
+            <select id="setStartChips" class="field-control">
+              <option value="500">500</option>
+              <option value="1000">1000</option>
+              <option value="2000">2000</option>
+            </select>
+          </label>
+          <label class="field-label">Ante
+            <select id="setAnte" class="field-control">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+          </label>
+          <label class="field-label">Bet額
+            <select id="setBet" class="field-control">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </label>
+          <label class="field-label">Blind
+            <select id="setBlindsOn" class="field-control">
+              <option value="1">ON</option>
+              <option value="0">OFF</option>
+            </select>
+          </label>
+          <label class="field-label">Small Blind
+            <select id="setSmallBlind" class="field-control">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+          </label>
+          <label class="field-label">Big Blind
+            <select id="setBigBlind" class="field-control">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </label>
+        </div>
+        <div class="setting-card">
+          <h3 class="setting-card-title">プレイ</h3>
+          <label class="field-label">CPU難易度
+            <select id="setDifficulty" class="field-control">
+              <option value="easy">Easy</option>
+              <option value="normal">Normal</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
+          <label class="field-label">プレイ速度
+            <select id="setSpeed" class="field-control">
+              <option value="slow">Slow</option>
+              <option value="normal">Normal</option>
+              <option value="fast">Fast</option>
+            </select>
+          </label>
+        </div>
+        <div class="setting-card setting-card-toggles">
+          <h3 class="setting-card-title">オプション</h3>
+          <label class="field-label">Animation
+            <select id="setAnimations" class="field-control">
+              <option value="1">ON</option>
+              <option value="0">OFF</option>
+            </select>
+          </label>
+          <label class="field-label">Sound
+            <select id="setSound" class="field-control">
+              <option value="0">OFF</option>
+              <option value="1">ON</option>
+            </select>
+          </label>
+          <label class="field-label">Fold確認
+            <select id="setFoldConfirm" class="field-control">
+              <option value="1">ON</option>
+              <option value="0">OFF</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <button type="button" id="btnChipRefillPre" class="btn-pregame-refill">チップ補充（〜1000・換金不可）</button>
+      <button type="button" id="btnStartWithSettings" class="btn-pregame-start">この設定で開始</button>
+    </main>
+  </div>
+
+  <!-- 3. ゲーム -->
+  <div id="screenGame" class="app-screen screen-game" data-view="game" hidden>
+    <header class="screen-header screen-header-game">
+      <div class="game-hud-bar" aria-label="ハンド情報">
+        <div class="game-hud-left" id="gameHudAnteBlind">アンティ：—</div>
+        <div class="game-hud-center" id="gameHudMeta">—</div>
+      </div>
+      <div class="game-nav-row">
+        <button type="button" id="gameBtnHome" class="btn-game-nav">トップへ</button>
+        <button type="button" id="gameBtnNewHand" class="btn-game-nav btn-game-nav-accent">新しいハンド</button>
+        <button type="button" id="gameBtnRules" class="btn-game-nav">ルール</button>
+        <button type="button" id="gameBtnDebugTab" class="btn-game-nav btn-lobby-dev">デバッグ</button>
+      </div>
+    </header>
+    <div class="game-scroll">
+      <div class="game-tabs" aria-label="ゲーム内タブ">
+        <div class="game-tab-bar" role="tablist">
+          <button type="button" class="game-tab is-active" role="tab" aria-selected="true" data-game-tab="play" id="tabGamePlay">プレイ</button>
+          <button type="button" class="game-tab" role="tab" aria-selected="false" data-game-tab="log" id="tabGameLog">ログ</button>
+          <button type="button" class="game-tab" role="tab" aria-selected="false" data-game-tab="results" id="tabGameResults">結果</button>
+          <button type="button" class="game-tab" role="tab" aria-selected="false" data-game-tab="debug" id="tabGameDebug">デバッグ</button>
+        </div>
+        <div class="game-tab-panels">
+          <div id="panelGamePlay" class="game-tab-panel is-active" role="tabpanel" data-panel="play" aria-labelledby="tabGamePlay">
+            <section class="poker-stage poker-stage-ingame" aria-label="ゲームテーブル">
+              <div class="poker-grid-wrap" data-cpu-count="1">
+                <div class="poker-grid">
+                  <div id="seatTL" class="pg-seat pg-tl" hidden></div>
+                  <div id="seatTC" class="pg-seat pg-tc" hidden></div>
+                  <div id="seatTR" class="pg-seat pg-tr" hidden></div>
+                  <div id="seatML" class="pg-seat pg-ml" hidden></div>
+                  <div class="poker-felt pg-felt-cell" aria-hidden="false">
+                    <div class="felt-plate" role="status" aria-label="ポット">
+                      <div class="felt-pot-line"><span class="felt-lbl">ポット</span> <span id="potLabel" class="felt-val pot-val-em">0</span></div>
+                    </div>
+                  </div>
+                  <div id="seatMR" class="pg-seat pg-mr" hidden></div>
+                  <div id="seatBL" class="pg-seat pg-bl" hidden></div>
+                  <div id="seatBottom" class="pg-seat pg-player"></div>
+                  <div id="seatBR" class="pg-seat pg-br" hidden></div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div id="panelGameLog" class="game-tab-panel" role="tabpanel" data-panel="log" aria-labelledby="tabGameLog" hidden>
+            <div id="messageLog" class="message-log message-log-tab" aria-label="詳細メッセージログ"></div>
+          </div>
+          <div id="panelGameResults" class="game-tab-panel" role="tabpanel" data-panel="results" aria-labelledby="tabGameResults" hidden>
+            <div id="resultsContent" class="results-content results-content-tab" aria-live="polite"></div>
+          </div>
+          <div id="panelGameDebug" class="game-tab-panel game-tab-panel-debug" role="tabpanel" data-panel="debug" aria-labelledby="tabGameDebug" hidden>
+            <p class="debug-note">開発確認用です。プレイ中は通常「プレイ」タブをご利用ください。</p>
+            <pre id="gameDebugDump" class="debug-pre debug-pre-tab"></pre>
+            <div class="debug-actions">
+              <button type="button" id="gameDebugForceSd" class="btn-secondary">強制ショーダウン</button>
+              <button type="button" id="gameDebugResetStats" class="btn-secondary">戦績リセット</button>
+              <button type="button" id="gameDebugResetSettings" class="btn-secondary">設定リセット</button>
+              <button type="button" id="gameDebugClearLs" class="btn-danger">localStorage 全削除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav class="control-dock control-dock-game" aria-label="ゲーム操作">
+      <div class="control-dock-inner">
+        <div class="dock-row dock-row-top">
+          <section class="dock-tile dock-tile-log" aria-label="ログ表示">
+            <h3 class="dock-tile-title">ログ表示</h3>
+            <div class="dock-tile-body dock-tile-scroll" id="dockMiniLog" aria-live="polite"></div>
+          </section>
+          <section class="dock-tile dock-tile-support" aria-label="サポートAI">
+            <h3 class="dock-tile-title">サポートAI</h3>
+            <div class="dock-tile-body dock-tile-scroll dock-support-text" id="dockSupportAi"></div>
+          </section>
+        </div>
+        <div class="dock-row dock-row-bottom">
+          <div class="dock-tile dock-tile-ranks" aria-label="役名">
+            <div class="hand-rank-panel hand-rank-dock-root">
+              <div id="handRankMeta" class="hand-rank-meta"></div>
+              <div class="dock-rank-split">
+                <div id="handRankHighWrap" class="hand-rank-col-block" aria-label="ハイ役（強い順）"></div>
+                <div class="dock-rank-low-wrap">
+                  <div id="handRankLowWrap" class="hand-rank-col-block" aria-label="ロー役"></div>
+                  <button type="button" id="btnAllIn" class="btn-action btn-allin btn-allin-on-ranks" aria-label="オールイン">オールイン</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="dock-tile dock-tile-actions">
+            <div class="dock-actions-rows dock-actions-rows-six" aria-label="ベット操作">
+              <div class="dock-actions-row dock-actions-row-top">
+                <button type="button" id="btnFoldDock" class="btn-dock btn-fold-dock btn-dock-compact">フォールド</button>
+                <button type="button" id="btnCheck" class="btn-action btn-dock-compact">チェック</button>
+                <button type="button" id="btnCall" class="btn-action btn-dock-compact">コール</button>
+              </div>
+              <div class="dock-actions-row dock-actions-row-bottom">
+                <button type="button" id="btnBet" class="btn-action btn-dock-compact">シングル</button>
+                <button type="button" id="btnDouble" class="btn-action btn-dock-compact">ダブル</button>
+                <button type="button" id="btnTriple" class="btn-action btn-dock-compact">トリプル</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <!-- 4. ルール -->
+  <div id="screenRules" class="app-screen screen-sub" data-view="rules" hidden>
+    <header class="screen-header">
+      <button type="button" id="rulesBack" class="btn-header-back">← 戻る</button>
+      <h2 class="screen-title">ルール説明</h2>
+    </header>
+    <main class="screen-body screen-body-scroll">
+      <article class="rules-article">
+        <h3>セブンカードスタッドの流れ</h3>
+        <p>各プレイヤーに計7枚が配られ、共有カードはありません。Third Street では2枚ホール＋1枚表向きから始まり、Fourth〜Sixth Street で表向きが1枚ずつ増え、Seventh Street で最後の1枚がホールとして配られます。各ストリートのあとにベットラウンドがあります。</p>
+        <h3>Third Street</h3>
+        <p>最初の3枚（ホール2・ドア1）が配られ、最初のベットラウンドへ進みます。</p>
+        <h3>Fourth Street</h3>
+        <p>4枚目の表向きカードが配られ、ベットラウンドです。</p>
+        <h3>Fifth Street</h3>
+        <p>5枚目の表向きカードが配られ、ベットラウンドです。</p>
+        <h3>Sixth Street</h3>
+        <p>6枚目の表向きカードが配られ、ベットラウンドです。</p>
+        <h3>Seventh Street</h3>
+        <p>7枚目はホールカードとして配られ、最終ベットラウンドの後にショーダウンです。</p>
+        <h3>アンティとブラインド（本アプリ）</h3>
+        <p>各ハンド開始時に、<strong>全員</strong>が設定のアンティをポットに支払います。設定で Blind を ON にしている場合は、アンティのあとにスモールブラインド（SB）とビッグブラインド（BB）が順に支払われ、SB/BB の担当席はハンドごとに1つずつ進みます（参加順：あなた → CPU 1 → …、最後の次は再びあなた）。最初のベットラウンドは <strong>現在ベット</strong> が BB 額の状態で始まります。Blind OFF のときはアンティのみです。</p>
+        <h3>アクションボタン</h3>
+        <p><strong>チェック</strong>：追加ベットなしで進めます（ラウンド投入が揃っているときのみ）。<strong>コール</strong>：現在の必須額までチップを足します（足りない場合は残り全額でオールインコール）。<strong>シングル</strong>：誰もこのラウンドでまだ張っていない状態で、設定のベット単位をポットに出します（従来のオープンベット相当）。<strong>ダブル</strong>：このラウンドの最大投入額（ブラインドや先行ベットを含む）を基準に、自分の投入を<strong>その2倍</strong>まで引き上げます（追加支払いは目標額との差分）。誰も張っていない場合はベット単位の2倍を投入する目標になります。<strong>トリプル</strong>：同様に<strong>3倍</strong>まで引き上げます。<strong>オールイン</strong>：残りチップをすべてポットに出します（画面では<strong>下部のロー役一覧付近</strong>のボタンから操作）。オールイン後もフォールドではなく、ショーダウンまで残ります。投入額の差は<strong>サイドポット</strong>として分かれ、各ポットごとにハイ／ローが決まります。<strong>フォールド</strong>：そのハンドを降り、以降の判定から除外されます（すでにポットに出したチップは没収扱いでポットに残ります）。</p>
+        <h3>8 or Better（ロー）</h3>
+        <p>ローは <strong>A〜8</strong> のランクだけを使い、<strong>同ランクの重複なし</strong>で5枚揃える必要があります。</p>
+        <h3>Aの扱い</h3>
+        <p>ハイでは通常どおり14。ローでは <strong>1</strong> として数えます。</p>
+        <h3>ストレート・フラッシュとロー</h3>
+        <p>ロー比較では <strong>ストレートもフラッシュも無視</strong>されます（役ではなく5枚のランク集合として見るため）。</p>
+        <h3>ハイ・ロー・スクープ</h3>
+        <p>ポットはハイ側とロー側に分かれ、最強のハイ／成立した最強のローがそれぞれ取得します。同一プレイヤーが両方取ると<strong>スクープ</strong>です。</p>
+        <h3>ロー成立者がいない場合</h3>
+        <p>ハイ勝者が<strong>ポット全額</strong>を取得します（奇数チップの端数はハイ側のルールはショーダウン分配で反映）。</p>
+        <h3>このアプリの限界</h3>
+        <p><strong>サイドポット</strong>は、各席のハンド通算投入（アンティ・ブラインド・ベット等の合計）に基づいてショーダウン時に作成され、ポットごとにハイ／ロー／スクープを判定します。フォールドした席は勝者になりませんが、投入済みチップはポットに残ります。<strong>再レイズの上限やベットキャップ</strong>など、カジノの一部細則は簡易実装です。</p>
+      </article>
+    </main>
+  </div>
+
+  <!-- 5. 戦績 -->
+  <div id="screenStats" class="app-screen screen-sub" data-view="stats" hidden>
+    <header class="screen-header">
+      <button type="button" id="statsBack" class="btn-header-back">← 戻る</button>
+      <h2 class="screen-title">戦績</h2>
+    </header>
+    <main class="screen-body screen-body-scroll">
+      <div id="statsContent" class="stats-content stats-screen"></div>
+      <button type="button" id="btnChipRefillStats" class="btn-screen-action btn-secondary-light">チップ補充（〜1000・換金不可）</button>
+      <button type="button" id="resetStatsBtn" class="btn-screen-action">戦績リセット</button>
+    </main>
+  </div>
+
+  <!-- 6. 履歴 -->
+  <div id="screenHistory" class="app-screen screen-sub" data-view="history" hidden>
+    <header class="screen-header">
+      <button type="button" id="historyBack" class="btn-header-back">← 戻る</button>
+      <h2 class="screen-title">履歴</h2>
+    </header>
+    <main class="screen-body screen-body-scroll">
+      <div id="historyContent" class="history-screen"></div>
+      <button type="button" id="resetHistoryBtn" class="btn-screen-action">履歴リセット</button>
+    </main>
+  </div>
+
+  <div id="modalRoot" class="modal-root" hidden>
+    <div class="modal-backdrop" aria-hidden="true"></div>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalText">
+      <p id="modalText" class="modal-text"></p>
+      <div class="modal-actions">
+        <button type="button" id="modalPrimary" class="btn-modal-primary">OK</button>
+        <button type="button" id="modalCancel" class="btn-modal-cancel">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

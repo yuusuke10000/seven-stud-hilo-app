@@ -1,0 +1,19 @@
+{
+  "name": "スタッド・ハイロー トレーナー",
+  "short_name": "スタッドHiLo",
+  "description": "セブンカードスタッド・ハイロー（8オアベター）の学習用。オフライン・仮想チップのみ。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1a0f08",
+  "background_color": "#120a06",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

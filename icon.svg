@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Stud Hi-Lo">
+  <rect width="128" height="128" rx="20" fill="#052e1a"/>
+  <path fill="#fbbf24" d="M64 18c-8 18-28 32-28 52a28 28 0 1056 0c0-20-20-34-28-52z"/>
+  <text x="64" y="102" text-anchor="middle" fill="#ecfdf5" font-size="22" font-family="system-ui,sans-serif" font-weight="700">8`</text>
+</svg>
