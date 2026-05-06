@@ -7,6 +7,7 @@ export function SeatPanel({ vm }) {
   const folded = !!vm.isFolded;
   const allIn = !!vm.isAllIn;
   const showRoles = !!vm.shouldShowHandRank;
+  const revealAll = !!vm.revealCards;
 
   return (
     <div className={vm.panelClasses}>
@@ -20,7 +21,7 @@ export function SeatPanel({ vm }) {
       {!vm.shouldShowCards ? null : (
         <div className="hand" aria-label="手札（モック）">
           {(vm.cards || []).map((c, idx) => (
-            <Card key={`${idx}-${c.r}${c.s}`} rank={c.r} suit={c.s} />
+            <Card key={`${idx}-${c.r}${c.s}`} rank={c.r} suit={c.s} faceUp={revealAll ? true : c.faceUp !== false} />
           ))}
         </div>
       )}

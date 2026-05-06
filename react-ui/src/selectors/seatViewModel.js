@@ -28,6 +28,7 @@ export function selectSeatViewModel(state, seatId) {
   const isWinner = !!seat.winner && !isFolded;
 
   const shouldShowCards = !isFolded;
+  const revealCards = isHero || isShowdown;
 
   // Hand rank display rules
   const shouldShowHandRank = !isFolded && (isShowdown || isHero) && !(isCpu && !isShowdown);
@@ -80,6 +81,7 @@ export function selectSeatViewModel(state, seatId) {
     badges,
     panelClasses,
     cards: seat.cards || [],
+    revealCards,
     shouldShowCards,
     shouldShowHandRank,
     lastActionText,

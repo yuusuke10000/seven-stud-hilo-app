@@ -254,8 +254,15 @@ function ensureBettingOpen(state) {
 function applyBetLike(state, seatId, mult) {
   const st = ensureBettingOpen(state);
   const target = st.betting.target;
-  const base = target > 0 ? target : Number(st.settings.betUnit || 0);
-  const desired = Math.max(0, base * mult);
+  const betUnit = Number(st.settings.betUnit || 0);
+  const desired =
+    mult === 1
+      ? target > 0
+        ? target
+        : betUnit
+      : target > 0
+        ? target * mult
+        : betUnit * mult;
   const extra = Math.max(0, desired - st.betting.invested[seatId]);
   return pay(st, seatId, extra, mult === 1 ? `シングル ${extra}` : mult === 2 ? `ダブル ${extra}` : `トリプル ${extra}`);
 }
@@ -510,6 +517,7 @@ export function showdownAndPayoutForReact(state) {
       highWinners,
       lowWinners,
       lowOk,
+      scoop: lowOk && highWinners.length === 1 && lowWinners.length === 1 && highWinners[0] === lowWinners[0],
     });
   }
 
