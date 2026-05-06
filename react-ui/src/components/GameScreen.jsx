@@ -6,9 +6,11 @@ import { HandRankPanel } from "./HandRankPanel.jsx";
 import { ActionButtons } from "./ActionButtons.jsx";
 import { EngineDebugPanel } from "./EngineDebugPanel.jsx";
 import "./game.css";
+import { selectMiniLogViewModel } from "../selectors/resultViewModel.js";
 
 export function GameScreen({ mock }) {
   const [tab, setTab] = useState("play");
+  const mini = useMemo(() => selectMiniLogViewModel(mock), [mock]);
 
   const tabs = useMemo(
     () => [
@@ -66,7 +68,7 @@ export function GameScreen({ mock }) {
           <div className="zone-b" aria-label="ゾーンB：ミニログ・サポートAI">
             <div className="dock-row dock-row-top">
               <div className="dock-tile">
-                <MiniLog items={mock.miniLog} />
+                <MiniLog items={mini.items} />
               </div>
               <div className="dock-tile">
                 <SupportAi data={mock.supportAi} />
