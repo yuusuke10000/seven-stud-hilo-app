@@ -464,6 +464,27 @@
   border: 1px solid rgba(232, 197, 71, 0.35);
 }
 
+.blind-badge {
+  display: inline-block;
+  padding: 0.06rem 0.32rem;
+  border-radius: 4px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  font-size: 0.78em;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(248, 244, 232, 0.92);
+}
+
+.blind-sb {
+  background: rgba(79, 70, 229, 0.25);
+}
+
+.blind-bb {
+  background: rgba(22, 163, 74, 0.25);
+}
+
 .hand {
   display: flex;
   gap: var(--hand-gap);

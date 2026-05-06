@@ -36,6 +36,12 @@ export function selectSeatViewModel(state, seatId) {
   const badges = [];
   if (isAllIn) badges.push({ kind: "allin", text: "オールイン" });
   if (isFolded) badges.push({ kind: "fold", text: "フォールド" });
+  if (state?.settings?.blindsOn && state?.handBlindsPosted && state.handSbSeat === seatId) {
+    badges.push({ kind: "sb", text: "SB" });
+  }
+  if (state?.settings?.blindsOn && state?.handBlindsPosted && state.handBbSeat === seatId) {
+    badges.push({ kind: "bb", text: "BB" });
+  }
 
   const panelClasses = [
     "seat-panel",

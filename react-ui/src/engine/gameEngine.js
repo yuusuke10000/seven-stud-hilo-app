@@ -25,8 +25,9 @@ export function createInitialGameState(options = {}) {
   const cpuCount = clamp(options.cpuCount ?? 5, 1, 5);
   const startChips = Number(options.startChips ?? 1000);
   const ante = Number(options.ante ?? 10);
-  const sb = Number(options.sb ?? 10);
-  const bb = Number(options.bb ?? 20);
+  const blindsOn = options.blindsOn ?? true;
+  const smallBlind = Number(options.smallBlind ?? options.sb ?? 10);
+  const bigBlind = Number(options.bigBlind ?? options.bb ?? 20);
   const betUnit = Number(options.betUnit ?? 20);
 
   const players = createPlayers(cpuCount, startChips);
@@ -40,8 +41,8 @@ export function createInitialGameState(options = {}) {
 
   return {
     view: { cpuChoices: [1, 3, 5], cpuCount, isShowdown: false },
-    settings: { cpuCount, startChips, ante, sb, bb, betUnit },
-    hud: { ante, sb, bb, cpuCount },
+    settings: { cpuCount, startChips, ante, betUnit, blindsOn: !!blindsOn, smallBlind, bigBlind },
+    hud: { ante, sb: smallBlind, bb: bigBlind, cpuCount, blindsOn: !!blindsOn },
 
     // core-ish state (future migration targets)
     players,
@@ -66,6 +67,13 @@ export function createInitialGameState(options = {}) {
     lastActions: Array.from({ length: n }, () => ""),
     lastResult: null,
     handStartStacks: Array.from({ length: n }, () => startChips),
+
+    blindRotateIndex: Number(options.blindRotateIndex ?? 0) || 0,
+    handBlindsPosted: false,
+    handSbSeat: -1,
+    handBbSeat: -1,
+    handSbPaid: 0,
+    handBbPaid: 0,
 
     // UI helpers
     mockResult: { miniLog: [], winnerSeatIds: [] },
@@ -121,6 +129,7 @@ export function createNewHandState(options = {}) {
   // simplistic ante posting (keeps totalCommitted/pot in shape)
   const n = withDeck.players.length;
   const ante = Number(withDeck.settings.ante ?? 0);
+  const allIn = withDeck.allIn.slice();
   const stacks = withDeck.stacks.slice();
   const totalCommitted = withDeck.totalCommitted.slice();
   let potAmt = 0;
@@ -130,20 +139,54 @@ export function createNewHandState(options = {}) {
     stacks[s] -= pay;
     totalCommitted[s] += pay;
     potAmt += pay;
+    if (stacks[s] <= 0 && pay > 0) allIn[s] = true;
   }
 
   let st = {
     ...withDeck,
+    allIn,
     stacks,
     handStartStacks,
     totalCommitted,
     pot: { amount: potAmt, amountText: fmtNum(potAmt) },
   };
+
+  // blinds (optional)
+  st = postBlindsForHand(st);
   st = dealInitialStudCards(st);
   st = startBettingRound(st);
 
   // initialize seats (UI-friendly)
   st = rebuildSeatsFromCore(st);
+  return st;
+}
+
+function postBlindsForHand(state) {
+  if (!state.settings.blindsOn) {
+    return {
+      ...state,
+      handBlindsPosted: false,
+      handSbSeat: -1,
+      handBbSeat: -1,
+      handSbPaid: 0,
+      handBbPaid: 0,
+    };
+  }
+  const n = state.players.length;
+  const sbSeat = ((state.blindRotateIndex ?? 0) % n + n) % n;
+  const bbSeat = (sbSeat + 1) % n;
+  let st = { ...state, handBlindsPosted: true, handSbSeat: sbSeat, handBbSeat: bbSeat, handSbPaid: 0, handBbPaid: 0 };
+  const sb = Number(st.settings.smallBlind ?? 0);
+  const bb = Number(st.settings.bigBlind ?? 0);
+
+  // Use pay() so pot/totalCommitted/stacks/allIn stay consistent.
+  const sbBefore = st.stacks[sbSeat] ?? 0;
+  st = pay(st, sbSeat, sb, `スモールブラインド ${Math.max(0, Math.min(sbBefore, sb))}`);
+  st = { ...st, handSbPaid: Math.max(0, Math.min(sbBefore, sb)) };
+  const bbBefore = st.stacks[bbSeat] ?? 0;
+  st = pay(st, bbSeat, bb, `ビッグブラインド ${Math.max(0, Math.min(bbBefore, bb))}`);
+  st = { ...st, handBbPaid: Math.max(0, Math.min(bbBefore, bb)) };
+
   return st;
 }
 
@@ -159,12 +202,18 @@ function activeSeatIds(state) {
 function startBettingRound(state) {
   const n = state.players.length;
   const prevRound = Number(state.betting?.round ?? 0);
+  const invested = Array.from({ length: n }, () => 0);
+  if (state.handBlindsPosted) {
+    if (state.handSbSeat >= 0) invested[state.handSbSeat] = state.handSbPaid || 0;
+    if (state.handBbSeat >= 0) invested[state.handBbSeat] = state.handBbPaid || 0;
+  }
+  const target = state.handBlindsPosted && state.handBbSeat >= 0 ? invested[state.handBbSeat] : 0;
   return {
     ...state,
     betting: {
       round: prevRound + 1,
-      target: 0,
-      invested: Array.from({ length: n }, () => 0),
+      target,
+      invested,
       currentActor: firstActor(state),
       toAct: firstActor(state),
       acted: Array.from({ length: n }, () => false),
@@ -454,9 +503,11 @@ export function applyGameAction(state, action) {
       cpuCount: state.settings.cpuCount,
       startChips: state.settings.startChips,
       ante: state.settings.ante,
-      sb: state.settings.sb,
-      bb: state.settings.bb,
+      blindsOn: state.settings.blindsOn,
+      smallBlind: state.settings.smallBlind,
+      bigBlind: state.settings.bigBlind,
       betUnit: state.settings.betUnit,
+      blindRotateIndex: (Number(state.blindRotateIndex ?? 0) || 0) + 1,
     });
     // keep mini log (do not reset)
     next.mockResult = state.mockResult || { miniLog: [], winnerSeatIds: [] };

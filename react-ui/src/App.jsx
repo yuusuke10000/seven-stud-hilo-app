@@ -11,8 +11,17 @@ export default function App() {
   const [withFold, setWithFold] = useState(true);
   const [withAllIn, setWithAllIn] = useState(true);
   const [withWinners, setWithWinners] = useState(true);
+  const [blindsOn, setBlindsOn] = useState(true);
   const [engineState, setEngineState] = useState(() =>
-    createNewHandState({ cpuCount: 5, startChips: 1000, ante: 10, sb: 10, bb: 20, betUnit: 20 })
+    createNewHandState({
+      cpuCount: 5,
+      startChips: 1000,
+      ante: 10,
+      blindsOn: true,
+      smallBlind: 10,
+      bigBlind: 20,
+      betUnit: 20,
+    })
   );
 
   const mock = useMemo(
@@ -51,7 +60,15 @@ export default function App() {
                 setCpuCount(v);
                 if (dataSource === "engine") {
                   setEngineState(
-                    createNewHandState({ cpuCount: v, startChips: 1000, ante: 10, sb: 10, bb: 20, betUnit: 20 })
+                    createNewHandState({
+                      cpuCount: v,
+                      startChips: 1000,
+                      ante: 10,
+                      blindsOn,
+                      smallBlind: 10,
+                      bigBlind: 20,
+                      betUnit: 20,
+                    })
                   );
                 }
               }}
@@ -72,6 +89,30 @@ export default function App() {
           </label>
         </div>
         <div className="proto-row proto-row-toggles">
+          <label className="proto-toggle">
+            <input
+              type="checkbox"
+              checked={blindsOn}
+              onChange={(e) => {
+                const v = e.target.checked;
+                setBlindsOn(v);
+                if (dataSource === "engine") {
+                  setEngineState(
+                    createNewHandState({
+                      cpuCount,
+                      startChips: 1000,
+                      ante: 10,
+                      blindsOn: v,
+                      smallBlind: 10,
+                      bigBlind: 20,
+                      betUnit: 20,
+                    })
+                  );
+                }
+              }}
+            />
+            Blind
+          </label>
           <label className="proto-toggle">
             <input type="checkbox" checked={withFold} onChange={(e) => setWithFold(e.target.checked)} />
             Foldあり

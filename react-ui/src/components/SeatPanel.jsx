@@ -5,7 +5,6 @@ export function SeatPanel({ vm }) {
   if (!vm) return null;
 
   const folded = !!vm.isFolded;
-  const allIn = !!vm.isAllIn;
   const showRoles = !!vm.shouldShowHandRank;
   const revealAll = !!vm.revealCards;
 
@@ -13,8 +12,13 @@ export function SeatPanel({ vm }) {
     <div className={vm.panelClasses}>
       <div className="seat-head">
         <span className="seat-name">{vm.seatName}</span>
-        {allIn ? <span className="seat-allin-badge">オールイン</span> : null}
-        {folded ? <span className="seat-fold-badge seat-fold-badge-lg">フォールド</span> : null}
+        {vm.badges?.map((b) => {
+          if (b.kind === "allin") return <span key={b.kind} className="seat-allin-badge">オールイン</span>;
+          if (b.kind === "fold") return <span key={b.kind} className="seat-fold-badge seat-fold-badge-lg">フォールド</span>;
+          if (b.kind === "sb") return <span key={b.kind} className="blind-badge blind-sb">SB</span>;
+          if (b.kind === "bb") return <span key={b.kind} className="blind-badge blind-bb">BB</span>;
+          return null;
+        })}
         <span className={`seat-chips ${vm.chipLevel}`}>{vm.stackText}</span>
       </div>
 

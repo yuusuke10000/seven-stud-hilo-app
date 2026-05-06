@@ -47,8 +47,14 @@ export function GameScreen({ mock }) {
       <header className="game-header" aria-label="HUD">
         <div className="hud-row">
           <div className="hud-left">
-            アンティ：{mock.hud.ante} <span className="hud-sep">/</span> SB/BB：
-            {mock.hud.sb} / {mock.hud.bb}
+            アンティ：{mock.hud.ante} <span className="hud-sep">/</span>{" "}
+            {mock.hud.blindsOn ? (
+              <>
+                SB/BB：{mock.hud.sb} / {mock.hud.bb}
+              </>
+            ) : (
+              <>ブラインド：OFF</>
+            )}
           </div>
           <div className="hud-right">
             CPU {mock.hud.cpuCount}人
