@@ -158,11 +158,14 @@ function activeSeatIds(state) {
 
 function startBettingRound(state) {
   const n = state.players.length;
+  const prevRound = Number(state.betting?.round ?? 0);
   return {
     ...state,
     betting: {
+      round: prevRound + 1,
       target: 0,
       invested: Array.from({ length: n }, () => 0),
+      currentActor: firstActor(state),
       toAct: firstActor(state),
       acted: Array.from({ length: n }, () => false),
       closed: false,
@@ -202,7 +205,7 @@ function closeBettingIfDone(state) {
     if (!state.betting.acted[i]) return state;
     if (state.betting.invested[i] !== state.betting.target) return state;
   }
-  return { ...state, betting: { ...state.betting, closed: true, toAct: null } };
+  return { ...state, betting: { ...state.betting, closed: true, toAct: null, currentActor: null } };
 }
 
 function pay(state, seatId, amount, lastActionText) {
@@ -255,14 +258,11 @@ function applyBetLike(state, seatId, mult) {
   const st = ensureBettingOpen(state);
   const target = st.betting.target;
   const betUnit = Number(st.settings.betUnit || 0);
-  const desired =
-    mult === 1
-      ? target > 0
-        ? target
-        : betUnit
-      : target > 0
-        ? target * mult
-        : betUnit * mult;
+  if (mult === 1 && target > 0) {
+    // 既存仕様の完全再現が難しいため、React版プロトタイプでは single は「最小レイズ」ではなく call 相当に寄せる。
+    return applyCall(st, seatId);
+  }
+  const desired = target > 0 ? target * mult : betUnit * mult;
   const extra = Math.max(0, desired - st.betting.invested[seatId]);
   return pay(st, seatId, extra, mult === 1 ? `シングル ${extra}` : mult === 2 ? `ダブル ${extra}` : `トリプル ${extra}`);
 }
@@ -270,13 +270,18 @@ function applyBetLike(state, seatId, mult) {
 function applyCall(state, seatId) {
   const st = ensureBettingOpen(state);
   const toCall = Math.max(0, st.betting.target - st.betting.invested[seatId]);
-  return pay(st, seatId, toCall, toCall > 0 ? `コール ${toCall}` : "チェック");
+  if (toCall <= 0) return applyCheck(st, seatId);
+  const stack = st.stacks[seatId] ?? 0;
+  const payAmt = Math.min(stack, toCall);
+  if (payAmt <= 0) return applyFold(st, seatId);
+  const suffix = payAmt < toCall ? "（オールイン）" : "";
+  return pay(st, seatId, payAmt, `コール ${payAmt}${suffix}`);
 }
 
 function applyCheck(state, seatId) {
   const st = ensureBettingOpen(state);
   const toCall = Math.max(0, st.betting.target - st.betting.invested[seatId]);
-  if (toCall > 0) return applyCall(st, seatId);
+  if (toCall > 0) return st; // UI側で無効化する。保険として何もしない。
   const lastActions = st.lastActions.slice();
   lastActions[seatId] = "チェック";
   return { ...st, lastActions };
@@ -296,7 +301,7 @@ function markActedAndAdvance(state, seatId) {
   st = closeBettingIfDone(st);
   if (st.betting.closed) return st;
   const next = nextActor(st, seatId);
-  return { ...st, betting: { ...st.betting, toAct: next } };
+  return { ...st, betting: { ...st.betting, toAct: next, currentActor: next } };
 }
 
 function resolveIfFoldSurvivor(state) {

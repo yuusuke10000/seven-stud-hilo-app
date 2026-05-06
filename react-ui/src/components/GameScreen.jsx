@@ -17,6 +17,20 @@ export function GameScreen({ mock }) {
   const supportAi = useMemo(() => selectSupportAiViewModel(mock), [mock]);
   const handRanks = useMemo(() => selectHandRankViewModel(mock), [mock]);
   const canControl = typeof mock?.dispatch === "function";
+  const actor = mock?.betting?.currentActor ?? mock?.betting?.toAct ?? null;
+  const heroTurn = actor === 0;
+  const heroFolded = !!mock?.folded?.[0];
+  const heroAllIn = !!mock?.allIn?.[0];
+  const toCall = Math.max(0, (mock?.betting?.target ?? 0) - (mock?.betting?.invested?.[0] ?? 0));
+  const canAct = canControl && heroTurn && !heroFolded && !heroAllIn;
+  const disabled = {
+    fold: !canAct,
+    check: !canAct || toCall > 0,
+    call: !canAct || toCall <= 0,
+    single: !canAct,
+    double: !canAct,
+    triple: !canAct,
+  };
 
   const tabs = useMemo(
     () => [
@@ -80,7 +94,7 @@ export function GameScreen({ mock }) {
             </div>
           ) : tab === "debug" ? (
             <div className="panel-filler panel-filler-scroll" role="tabpanel">
-              <EngineDebugPanel />
+              <EngineDebugPanel state={mock} />
             </div>
           ) : (
             <div className="panel-filler" role="tabpanel">
@@ -113,7 +127,7 @@ export function GameScreen({ mock }) {
                       ? (t) => mock.dispatch({ type: "PLAYER_ACTION", seatId: 0, actionType: t })
                       : null
                   }
-                  disabled={!canControl || (mock?.betting?.toAct != null && mock.betting.toAct !== 0) || !!mock?.folded?.[0] || !!mock?.allIn?.[0]}
+                  disabled={disabled}
                 />
               </div>
             </div>
