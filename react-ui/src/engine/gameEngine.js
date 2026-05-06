@@ -144,9 +144,9 @@ function rebuildSeatsFromCore(state) {
       winner: false,
       lastActionText: folded ? "フォールド" : state.lastActions[i] || "",
       cards,
-      // placeholder role texts (future: computed via engine evaluators)
-      highText: state.view.isShowdown && !folded ? "ハイ：—" : "",
-      lowText: state.view.isShowdown && !folded ? "ロー：—" : "",
+      // placeholder role texts (actual evals are computed in selector using state.hands)
+      highText: "",
+      lowText: "",
     });
   }
   return { ...state, seats };

@@ -7,10 +7,14 @@ import { ActionButtons } from "./ActionButtons.jsx";
 import { EngineDebugPanel } from "./EngineDebugPanel.jsx";
 import "./game.css";
 import { selectMiniLogViewModel } from "../selectors/resultViewModel.js";
+import { selectSupportAiViewModel } from "../selectors/supportAiViewModel.js";
+import { selectHandRankViewModel } from "../selectors/handRankViewModel.js";
 
 export function GameScreen({ mock }) {
   const [tab, setTab] = useState("play");
   const mini = useMemo(() => selectMiniLogViewModel(mock), [mock]);
+  const supportAi = useMemo(() => selectSupportAiViewModel(mock), [mock]);
+  const handRanks = useMemo(() => selectHandRankViewModel(mock), [mock]);
 
   const tabs = useMemo(
     () => [
@@ -71,7 +75,7 @@ export function GameScreen({ mock }) {
                 <MiniLog items={mini.items} />
               </div>
               <div className="dock-tile">
-                <SupportAi data={mock.supportAi} />
+                <SupportAi data={supportAi} />
               </div>
             </div>
           </div>
@@ -79,7 +83,7 @@ export function GameScreen({ mock }) {
           <div className="zone-c" aria-label="ゾーンC：役名・操作">
             <div className="dock-row dock-row-bottom">
               <div className="dock-tile dock-tile-ranks">
-                <HandRankPanel data={mock.handRanks} />
+                <HandRankPanel data={handRanks} />
               </div>
               <div className="dock-tile dock-tile-actions">
                 <ActionButtons />

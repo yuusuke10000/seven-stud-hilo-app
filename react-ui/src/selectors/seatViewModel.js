@@ -1,4 +1,5 @@
 import { fmtNum } from "../engine/formatters.js";
+import { bestHighFromSeven, bestLowFromSeven, lowLadderShortJa } from "../engine/handEvaluator.js";
 
 function chipLevel(stack, base = 1000) {
   const n = Number(stack ?? 0);
@@ -46,8 +47,25 @@ export function selectSeatViewModel(state, seatId) {
     .join(" ");
 
   const lastActionText = isFolded ? "フォールド" : seat.lastActionText || "";
-  const highText = shouldShowHandRank ? seat.highText || "" : "";
-  const lowText = shouldShowHandRank ? seat.lowText || "" : "";
+
+  let highText = "";
+  let lowText = "";
+  if (shouldShowHandRank) {
+    const hand = state?.hands?.[seatId] || [];
+    const isCpuShow = isCpu && isShowdown && hand.length === 7;
+    const isHeroShow = isHero && hand.length >= 5;
+    if (isCpuShow || isHeroShow) {
+      const cards = hand.map((c) => ({ r: c.r, s: c.s }));
+      const hi = bestHighFromSeven(cards);
+      const lo = bestLowFromSeven(cards);
+      highText = hi ? `ハイ：${hi.nameJa}` : "";
+      lowText = `ロー：${lowLadderShortJa(lo)}`;
+    } else {
+      // fallback for pure-mock state (string-based)
+      highText = seat.highText || "";
+      lowText = seat.lowText || "";
+    }
+  }
 
   return {
     seatId,
