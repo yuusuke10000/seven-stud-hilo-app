@@ -100,6 +100,33 @@
   font-size: 0.85rem;
 }
 
+/* Engine debug (small, collapsible) */
+.engine-debug {
+  width: min(880px, 100%);
+  padding: 0.55rem 0.6rem;
+  color: rgba(248, 244, 232, 0.92);
+}
+
+.engine-debug summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: rgba(201, 184, 150, 0.95);
+}
+
+.engine-pre {
+  margin: 0.5rem 0 0;
+  padding: 0.55rem 0.6rem;
+  max-height: min(46vh, 320px);
+  overflow: auto;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(232, 197, 71, 0.18);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* ===== Table ===== */
 .table-wrap {
   flex: 1 1 auto;

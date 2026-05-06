@@ -4,6 +4,7 @@ import { MiniLog } from "./MiniLog.jsx";
 import { SupportAi } from "./SupportAi.jsx";
 import { HandRankPanel } from "./HandRankPanel.jsx";
 import { ActionButtons } from "./ActionButtons.jsx";
+import { EngineDebugPanel } from "./EngineDebugPanel.jsx";
 import "./game.css";
 
 export function GameScreen({ mock }) {
@@ -52,7 +53,11 @@ export function GameScreen({ mock }) {
             <GameTable mock={mock} />
           ) : (
             <div className="panel-filler" role="tabpanel">
-              <p className="panel-note">このタブはモックです（表示確認用）。</p>
+              {tab === "debug" ? (
+                <EngineDebugPanel />
+              ) : (
+                <p className="panel-note">このタブはモックです（表示確認用）。</p>
+              )}
             </div>
           )}
         </div>
