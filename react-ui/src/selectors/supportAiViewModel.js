@@ -6,7 +6,7 @@ import { computeSupportAiDrawOdds } from "../engine/supportAi.js";
  * - hands/deck が揃っていれば engine 純関数で算出。
  */
 export function selectSupportAiViewModel(state, { random } = {}) {
-  if (state?.supportAi && state.supportAi.mode) return state.supportAi;
+  if (state?.supportAi && state.supportAi.mode === "odds") return state.supportAi;
 
   const hand0 = state?.hands?.[0] || [];
   const deck = state?.deck || [];

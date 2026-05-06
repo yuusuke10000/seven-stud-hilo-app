@@ -1,6 +1,6 @@
 import "./game.css";
 
-export function HandRankPanel({ data }) {
+export function HandRankPanel({ data, onAllIn }) {
   const high = data?.high || [];
   const low = data?.low || [];
   const activeHigh = data?.activeHigh || null;
@@ -28,7 +28,7 @@ export function HandRankPanel({ data }) {
               </div>
             );
           })}
-          <button type="button" className="btn-allin" aria-label="オールイン">
+          <button type="button" className="btn-allin" aria-label="オールイン" onClick={() => onAllIn?.()}>
             オールイン
           </button>
         </div>

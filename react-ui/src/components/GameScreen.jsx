@@ -5,6 +5,7 @@ import { SupportAi } from "./SupportAi.jsx";
 import { HandRankPanel } from "./HandRankPanel.jsx";
 import { ActionButtons } from "./ActionButtons.jsx";
 import { EngineDebugPanel } from "./EngineDebugPanel.jsx";
+import { ResultsPanel } from "./ResultsPanel.jsx";
 import "./game.css";
 import { selectMiniLogViewModel } from "../selectors/resultViewModel.js";
 import { selectSupportAiViewModel } from "../selectors/supportAiViewModel.js";
@@ -15,6 +16,7 @@ export function GameScreen({ mock }) {
   const mini = useMemo(() => selectMiniLogViewModel(mock), [mock]);
   const supportAi = useMemo(() => selectSupportAiViewModel(mock), [mock]);
   const handRanks = useMemo(() => selectHandRankViewModel(mock), [mock]);
+  const canControl = typeof mock?.dispatch === "function";
 
   const tabs = useMemo(
     () => [
@@ -34,7 +36,22 @@ export function GameScreen({ mock }) {
             アンティ：{mock.hud.ante} <span className="hud-sep">/</span> SB/BB：
             {mock.hud.sb} / {mock.hud.bb}
           </div>
-          <div className="hud-right">CPU {mock.hud.cpuCount}人</div>
+          <div className="hud-right">
+            CPU {mock.hud.cpuCount}人
+            {canControl ? (
+              <span className="hud-actions">
+                <button type="button" className="hud-btn" onClick={() => mock.dispatch({ type: "NEW_HAND" })}>
+                  新しいハンド
+                </button>
+                <button type="button" className="hud-btn" onClick={() => mock.dispatch({ type: "ADVANCE_STREET" })}>
+                  次のストリート
+                </button>
+                <button type="button" className="hud-btn" onClick={() => mock.dispatch({ type: "FORCE_SHOWDOWN" })}>
+                  ショーダウン
+                </button>
+              </span>
+            ) : null}
+          </div>
         </div>
 
         <div className="game-tabs" role="tablist" aria-label="ゲーム内タブ（モック）">
@@ -57,13 +74,17 @@ export function GameScreen({ mock }) {
         <div className="zone-a" aria-label="ゾーンA：テーブル">
           {tab === "play" ? (
             <GameTable mock={mock} />
+          ) : tab === "results" ? (
+            <div className="panel-filler panel-filler-scroll" role="tabpanel">
+              <ResultsPanel state={mock} />
+            </div>
+          ) : tab === "debug" ? (
+            <div className="panel-filler panel-filler-scroll" role="tabpanel">
+              <EngineDebugPanel />
+            </div>
           ) : (
             <div className="panel-filler" role="tabpanel">
-              {tab === "debug" ? (
-                <EngineDebugPanel />
-              ) : (
-                <p className="panel-note">このタブはモックです（表示確認用）。</p>
-              )}
+              <p className="panel-note">このタブはモックです（表示確認用）。</p>
             </div>
           )}
         </div>
@@ -83,10 +104,17 @@ export function GameScreen({ mock }) {
           <div className="zone-c" aria-label="ゾーンC：役名・操作">
             <div className="dock-row dock-row-bottom">
               <div className="dock-tile dock-tile-ranks">
-                <HandRankPanel data={handRanks} />
+                <HandRankPanel data={handRanks} onAllIn={canControl ? () => mock.dispatch({ type: "PLAYER_ACTION", seatId: 0, actionType: "allin" }) : null} />
               </div>
               <div className="dock-tile dock-tile-actions">
-                <ActionButtons />
+                <ActionButtons
+                  onAction={
+                    canControl
+                      ? (t) => mock.dispatch({ type: "PLAYER_ACTION", seatId: 0, actionType: t })
+                      : null
+                  }
+                  disabled={!canControl || (mock?.betting?.toAct != null && mock.betting.toAct !== 0) || !!mock?.folded?.[0] || !!mock?.allIn?.[0]}
+                />
               </div>
             </div>
           </div>

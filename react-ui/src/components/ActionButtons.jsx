@@ -1,25 +1,37 @@
 import "./game.css";
 
-function Btn({ className, children }) {
+function Btn({ className, children, onClick, disabled }) {
   return (
-    <button type="button" className={className}>
+    <button type="button" className={className} onClick={onClick} disabled={disabled}>
       {children}
     </button>
   );
 }
 
-export function ActionButtons() {
+export function ActionButtons({ onAction, disabled }) {
   return (
     <div className="actions" aria-label="操作（モック）">
       <div className="actions-row">
-        <Btn className="btn btn-fold">フォールド</Btn>
-        <Btn className="btn">チェック</Btn>
-        <Btn className="btn">コール</Btn>
+        <Btn className="btn btn-fold" onClick={() => onAction?.("fold")} disabled={disabled}>
+          フォールド
+        </Btn>
+        <Btn className="btn" onClick={() => onAction?.("check")} disabled={disabled}>
+          チェック
+        </Btn>
+        <Btn className="btn" onClick={() => onAction?.("call")} disabled={disabled}>
+          コール
+        </Btn>
       </div>
       <div className="actions-row">
-        <Btn className="btn">シングル</Btn>
-        <Btn className="btn">ダブル</Btn>
-        <Btn className="btn">トリプル</Btn>
+        <Btn className="btn" onClick={() => onAction?.("single")} disabled={disabled}>
+          シングル
+        </Btn>
+        <Btn className="btn" onClick={() => onAction?.("double")} disabled={disabled}>
+          ダブル
+        </Btn>
+        <Btn className="btn" onClick={() => onAction?.("triple")} disabled={disabled}>
+          トリプル
+        </Btn>
       </div>
     </div>
   );

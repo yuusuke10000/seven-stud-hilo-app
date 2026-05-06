@@ -35,6 +35,30 @@
   color: rgba(248, 244, 232, 0.92);
 }
 
+.hud-actions {
+  margin-left: 0.4rem;
+  display: inline-flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.hud-btn {
+  min-height: 34px;
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 197, 71, 0.25);
+  background: rgba(61, 38, 24, 0.6);
+  color: rgba(248, 244, 232, 0.95);
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+
+.hud-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .hud-sep {
   opacity: 0.55;
   padding: 0 0.15rem;
@@ -94,10 +118,83 @@
   background: rgba(0, 0, 0, 0.18);
 }
 
+.panel-filler-scroll {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  place-items: start;
+  padding: 0.55rem;
+}
+
 .panel-note {
   margin: 0;
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+/* Results */
+.results-panel {
+  width: min(900px, 100%);
+  color: rgba(248, 244, 232, 0.95);
+  font-size: 0.82rem;
+}
+
+.results-block + .results-block {
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgba(232, 197, 71, 0.22);
+}
+
+.results-title {
+  font-weight: 900;
+  color: rgba(201, 184, 150, 0.95);
+  margin-bottom: 0.35rem;
+}
+
+.results-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.results-line {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 0.35rem;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.results-seat {
+  font-weight: 800;
+  color: rgba(248, 244, 232, 0.92);
+}
+
+.results-val {
+  font-variant-numeric: tabular-nums;
+}
+
+.results-line.is-plus .results-val {
+  color: #86efac;
+}
+
+.results-line.is-minus .results-val {
+  color: #fca5a5;
+}
+
+.results-role {
+  text-align: right;
+  color: rgba(201, 184, 150, 0.92);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.results-pot-lbl {
+  font-weight: 800;
+}
+
+.results-pot-amt {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Engine debug (small, collapsible) */
@@ -579,6 +676,11 @@
   color: rgba(248, 244, 232, 0.95);
   font-weight: 900;
   cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 .btn-fold {
   border-color: rgba(185, 28, 28, 0.75);
