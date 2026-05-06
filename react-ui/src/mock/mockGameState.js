@@ -125,3 +125,5 @@ export function createMockGameState({
   };
 }
 
+export const MOCK_CPU_CHOICES = CPU_CHOICES;
+
