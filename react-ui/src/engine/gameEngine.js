@@ -7,6 +7,22 @@ function clamp(v, lo, hi) {
   return Math.min(hi, Math.max(lo, v));
 }
 
+function pushDetailLog(state, line) {
+  const prev = state.detailLog || [];
+  const items = prev.slice();
+  const s = String(line ?? "").trim();
+  if (!s) return state;
+  items.push(s);
+  // keep it bounded (avoid unbounded growth)
+  const MAX = 700;
+  while (items.length > MAX) items.shift();
+  return { ...state, detailLog: items };
+}
+
+function seatName(state, seatId) {
+  return state.players?.[seatId]?.seatName || `Seat ${seatId}`;
+}
+
 export function createPlayers(cpuCount, startChips) {
   const nCpu = clamp(cpuCount, 1, 5);
   const players = [];
@@ -67,6 +83,9 @@ export function createInitialGameState(options = {}) {
     lastActions: Array.from({ length: n }, () => ""),
     lastResult: null,
     handStartStacks: Array.from({ length: n }, () => startChips),
+    detailLog: [],
+    handResultSeq: Number(options.handResultSeq ?? 0) || 0,
+    handJustEnded: null,
 
     blindRotateIndex: Number(options.blindRotateIndex ?? 0) || 0,
     handBlindsPosted: false,
@@ -150,6 +169,8 @@ export function createNewHandState(options = {}) {
     totalCommitted,
     pot: { amount: potAmt, amountText: fmtNum(potAmt) },
   };
+  st = pushDetailLog(st, "---- 新しいハンド ----");
+  if (ante > 0) st = pushDetailLog(st, `アンティ ${fmtNum(ante)}（全員）`);
 
   // blinds (optional)
   st = postBlindsForHand(st);
@@ -187,6 +208,8 @@ function postBlindsForHand(state) {
   st = pay(st, bbSeat, bb, `ビッグブラインド ${Math.max(0, Math.min(bbBefore, bb))}`);
   st = { ...st, handBbPaid: Math.max(0, Math.min(bbBefore, bb)) };
 
+  st = pushDetailLog(st, `${seatName(st, sbSeat)}：SB ${fmtNum(st.handSbPaid)}`);
+  st = pushDetailLog(st, `${seatName(st, bbSeat)}：BB ${fmtNum(st.handBbPaid)}`);
   return st;
 }
 
@@ -433,10 +456,10 @@ export function dealNextStreet(state) {
 }
 
 export function advanceStreet(state) {
-  if (state.street === "THIRD") return startBettingRound(rebuildSeatsFromCore(dealNextStreet(state)));
-  if (state.street === "FOURTH") return startBettingRound(rebuildSeatsFromCore(dealNextStreet(state)));
-  if (state.street === "FIFTH") return startBettingRound(rebuildSeatsFromCore(dealNextStreet(state)));
-  if (state.street === "SIXTH") return startBettingRound(rebuildSeatsFromCore(dealNextStreet(state)));
+  if (state.street === "THIRD") return startBettingRound(rebuildSeatsFromCore(pushDetailLog(dealNextStreet(state), "フォースストリート")));
+  if (state.street === "FOURTH") return startBettingRound(rebuildSeatsFromCore(pushDetailLog(dealNextStreet(state), "フィフスストリート")));
+  if (state.street === "FIFTH") return startBettingRound(rebuildSeatsFromCore(pushDetailLog(dealNextStreet(state), "シックスストリート")));
+  if (state.street === "SIXTH") return startBettingRound(rebuildSeatsFromCore(pushDetailLog(dealNextStreet(state), "セブンスストリート")));
   if (state.street === "SEVENTH") return showdownAndPayoutForReact(state);
   return state;
 }
@@ -474,6 +497,7 @@ export function applyPlayerAction(state, seatId, actionType) {
     return st;
   }
 
+  const beforeInvested = st.betting?.invested?.[seatId] ?? 0;
   if (actionType === "fold") st = applyFold(st, seatId);
   else if (actionType === "check") st = applyCheck(st, seatId);
   else if (actionType === "call") st = applyCall(st, seatId);
@@ -481,6 +505,16 @@ export function applyPlayerAction(state, seatId, actionType) {
   else if (actionType === "double") st = applyBetLike(st, seatId, 2);
   else if (actionType === "triple") st = applyBetLike(st, seatId, 3);
   else if (actionType === "allin") st = applyAllIn(st, seatId);
+  const afterInvested = st.betting?.invested?.[seatId] ?? beforeInvested;
+  const paid = Math.max(0, afterInvested - beforeInvested);
+  const label = actionType === "single" ? "シングル" : actionType === "double" ? "ダブル" : actionType === "triple" ? "トリプル" : actionType;
+  if (actionType === "check") st = pushDetailLog(st, `${seatName(st, seatId)}：チェック`);
+  else if (actionType === "fold") st = pushDetailLog(st, `${seatName(st, seatId)}：フォールド`);
+  else if (actionType === "call") st = pushDetailLog(st, `${seatName(st, seatId)}：コール ${fmtNum(paid)}`);
+  else if (actionType === "allin") st = pushDetailLog(st, `${seatName(st, seatId)}：オールイン ${fmtNum(paid)}`);
+  else if (actionType === "single" || actionType === "double" || actionType === "triple") {
+    st = pushDetailLog(st, `${seatName(st, seatId)}：${label} ${fmtNum(paid)}`);
+  }
 
   if (actionType === "fold") {
     st = resolveIfFoldSurvivor(st);
@@ -508,9 +542,12 @@ export function applyGameAction(state, action) {
       bigBlind: state.settings.bigBlind,
       betUnit: state.settings.betUnit,
       blindRotateIndex: (Number(state.blindRotateIndex ?? 0) || 0) + 1,
+      handResultSeq: state.handResultSeq || 0,
     });
-    // keep mini log (do not reset)
+    // keep logs (do not reset)
     next.mockResult = state.mockResult || { miniLog: [], winnerSeatIds: [] };
+    next.detailLog = state.detailLog || [];
+    next.handJustEnded = null;
     return next;
   }
   if (type === "ADVANCE_STREET") return rebuildSeatsFromCore(advanceStreet(state));
@@ -523,6 +560,7 @@ export function applyGameAction(state, action) {
 }
 
 export function showdownAndPayoutForReact(state) {
+  let logState = pushDetailLog(state, "ショーダウン");
   const n = state.players.length;
   const folded = state.folded;
   const tc = state.totalCommitted;
@@ -575,6 +613,11 @@ export function showdownAndPayoutForReact(state) {
       lowOk,
       scoop: lowOk && highWinners.length === 1 && lowWinners.length === 1 && highWinners[0] === lowWinners[0],
     });
+
+    logState = pushDetailLog(
+      logState,
+      `${sp.label} ${fmtNum(sp.amount)} / 対象: ${elig.map((i) => seatName(logState, i)).join("、") || "—"}`
+    );
   }
 
   const stacks = state.stacks.slice();
@@ -589,7 +632,7 @@ export function showdownAndPayoutForReact(state) {
   };
 
   let out = {
-    ...state,
+    ...logState,
     stacks,
     lastResult,
     view: { ...state.view, isShowdown: true },
@@ -612,8 +655,10 @@ function finalizeHand(state) {
   const start = state.handStartStacks || state.stacks;
   const items = prev.slice();
   items.push({ kind: "sep" });
+  const deltas = Array(n).fill(0);
   for (let i = 0; i < n; i++) {
     const delta = (state.stacks[i] ?? 0) - (start[i] ?? 0);
+    deltas[i] = delta;
     if (delta === 0) continue;
     // show role of winners only (simple)
     const roleText =
@@ -624,8 +669,27 @@ function finalizeHand(state) {
         : "";
     items.push({ kind: "delta", seatId: i, delta, roleText });
   }
+  const nextSeq = (Number(state.handResultSeq ?? 0) || 0) + 1;
   return {
     ...state,
+    handResultSeq: nextSeq,
+    handJustEnded: {
+      at: new Date().toISOString(),
+      kind: state.lastResult?.kind || "unknown",
+      cpuCount: state.settings?.cpuCount ?? null,
+      blindsOn: !!state.settings?.blindsOn,
+      smallBlind: state.settings?.smallBlind ?? null,
+      bigBlind: state.settings?.bigBlind ?? null,
+      ante: state.settings?.ante ?? null,
+      potDetails: state.lastResult?.potDetails || null,
+      awards: state.lastResult?.awards || null,
+      deltas,
+      stacks: state.stacks.slice(),
+      folded: state.folded.slice(),
+      allIn: state.allIn.slice(),
+      hiEvals: state.lastResult?.hiEvals || null,
+      loEvals: state.lastResult?.loEvals || null,
+    },
     mockResult: {
       miniLog: items,
       winnerSeatIds: state.seats.filter((s) => s.winner).map((s) => s.seatId),

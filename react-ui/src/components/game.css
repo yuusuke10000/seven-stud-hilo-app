@@ -59,6 +59,11 @@
   cursor: not-allowed;
 }
 
+.hud-btn-ghost {
+  border-color: rgba(232, 197, 71, 0.16);
+  background: rgba(0, 0, 0, 0.12);
+}
+
 .hud-sep {
   opacity: 0.55;
   padding: 0 0.15rem;

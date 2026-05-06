@@ -11,7 +11,7 @@ import { selectMiniLogViewModel } from "../selectors/resultViewModel.js";
 import { selectSupportAiViewModel } from "../selectors/supportAiViewModel.js";
 import { selectHandRankViewModel } from "../selectors/handRankViewModel.js";
 
-export function GameScreen({ mock }) {
+export function GameScreen({ mock, onExit }) {
   const [tab, setTab] = useState("play");
   const mini = useMemo(() => selectMiniLogViewModel(mock), [mock]);
   const supportAi = useMemo(() => selectSupportAiViewModel(mock), [mock]);
@@ -57,6 +57,11 @@ export function GameScreen({ mock }) {
             )}
           </div>
           <div className="hud-right">
+            {onExit ? (
+              <button type="button" className="hud-btn hud-btn-ghost" onClick={onExit}>
+                トップ
+              </button>
+            ) : null}
             CPU {mock.hud.cpuCount}人
             {canControl ? (
               <span className="hud-actions">
@@ -101,6 +106,10 @@ export function GameScreen({ mock }) {
           ) : tab === "debug" ? (
             <div className="panel-filler panel-filler-scroll" role="tabpanel">
               <EngineDebugPanel state={mock} />
+            </div>
+          ) : tab === "log" ? (
+            <div className="panel-filler panel-filler-scroll" role="tabpanel" aria-label="詳細ログ">
+              <pre className="engine-pre">{(mock?.detailLog || ["—"]).join("\n")}</pre>
             </div>
           ) : (
             <div className="panel-filler" role="tabpanel">
