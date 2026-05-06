@@ -3,6 +3,8 @@
 **Seven Card Stud Hi-Lo（8 or Better）** の学習用 Web アプリです。  
 **実際のお金・換金・課金はありません。** すべて **換金不可の仮想チップ** です。外部 API やサーバー通信は使いません。
 
+**React + Vite への移行作業**は `feature/react-ui-prototype` ブランチの `react-ui/` で進めています。引き継ぎ・現状整理は **`docs/REACT_MIGRATION_NOTES.md`** を参照してください。
+
 ## 画面構成（SPA・単一 `index.html`）
 
 ブラウザを再読み込みすると **常にトップ画面** から始まります。JavaScript で `data-view` 相当の画面 ID（`top` / `preGame` / `game` / `rules` / `stats` / `history`）を切り替えています。
