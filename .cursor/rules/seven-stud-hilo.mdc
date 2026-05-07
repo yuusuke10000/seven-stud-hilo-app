@@ -1,0 +1,27 @@
+﻿---
+description: Seven Stud Hi-Lo project rules
+---
+
+- このリポジトリでは、仕様確認を最優先に `README.md`、`docs/DEVELOPMENT_NOTES.md`、`docs/REACT_MIGRATION_NOTES.md` を先に読む。
+
+- React 移行作業は **`feature/react-ui-prototype` ブランチの `react-ui/` 配下**で進行している。React 関連の変更は原則 `react-ui/` 配下で行う。
+
+- 既存静的版の **`index.html` / `style.css` / `app.js` はまだ本体として残しており、置き換えない**（参照元として維持）。
+
+- Git 運用:
+  - **`main` へ直接コミットしない**（作業ブランチで行う）。
+
+- 必ず守るプロダクト仕様:
+  - 実際のお金、換金、課金は扱わない（換金不可の仮想チップのみ）。
+  - 外部 API やサーバー通信は追加しない。
+  - CPU 人数は 1〜5 人。
+  - All-in は Fold 扱いにしない。
+  - Fold 済みには以降カードを配らない。
+  - All-in には最後までカードを配る。
+  - Side Pot は `totalCommitted` をもとに作る（`totalCommitted` を消さない）。
+  - ショーダウン後に結果タブへ自動移動しない。
+  - 下部ミニログはチップ増減中心。
+  - Debug 情報はデバッグタブのみ。
+  - サポート AI は外部 API なし。
+  - ロー役名は `5 TOP / 6 TOP / 7 TOP / 8 TOP / ローなし`。
+  - 「ホイール」「未確定」「ハイ役」「ロー役」の見出しは通常画面に出さない。

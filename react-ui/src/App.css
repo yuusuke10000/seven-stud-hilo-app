@@ -1,0 +1,62 @@
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.proto-bar {
+  padding: 0.55rem 0.65rem;
+  padding-top: calc(0.55rem + env(safe-area-inset-top, 0px));
+  background: rgba(18, 10, 6, 0.92);
+  border-bottom: 1px solid rgba(232, 197, 71, 0.22);
+}
+
+.proto-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.proto-row + .proto-row {
+  margin-top: 0.35rem;
+}
+
+.proto-field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  color: rgba(201, 184, 150, 0.92);
+}
+
+.proto-field select {
+  min-height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 197, 71, 0.25);
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(248, 244, 232, 0.95);
+  padding: 0.15rem 0.45rem;
+}
+
+.proto-toggle {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  font-size: 0.76rem;
+  color: rgba(248, 244, 232, 0.92);
+}
+
+.proto-row-toggles input {
+  width: 18px;
+  height: 18px;
+}
+
+.app-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}

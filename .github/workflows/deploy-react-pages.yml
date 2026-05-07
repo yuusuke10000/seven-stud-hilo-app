@@ -1,0 +1,61 @@
+# React 版（react-ui）をビルドし、GitHub Pages（project site）へ公開する。
+# 前提: リポジトリ Settings → Pages → Build and deployment の Source を「GitHub Actions」に設定済みであること。
+# Vite の build 時 base は /seven-stud-hilo-app/（react-ui/vite.config.js）と整合。
+
+name: Deploy React to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: react-ui/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: react-ui
+
+      - name: Build
+        run: npm run build
+        working-directory: react-ui
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: react-ui/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
