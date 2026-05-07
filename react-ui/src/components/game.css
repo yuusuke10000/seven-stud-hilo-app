@@ -33,13 +33,15 @@
   flex: 0 0 auto;
   font-weight: 700;
   color: rgba(248, 244, 232, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.hud-actions {
-  margin-left: 0.4rem;
+.hud-tabs {
   display: inline-flex;
-  gap: 0.25rem;
-  flex-wrap: wrap;
+  gap: 0.22rem;
+  align-items: center;
 }
 
 .hud-btn {
@@ -69,31 +71,32 @@
   padding: 0 0.15rem;
 }
 
-.game-tabs {
-  display: flex;
-  gap: 0.25rem;
-  margin-top: 0.35rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 0.25rem;
-}
-
 .tab {
   flex: 1 1 0%;
   min-width: 4.2rem;
-  min-height: 44px;
+  min-height: 40px;
   border-radius: 10px 10px 0 0;
   cursor: pointer;
   border: 1px solid transparent;
   background: rgba(0, 0, 0, 0.12);
   color: rgba(201, 184, 150, 0.95);
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
 }
 
 .tab.is-active {
   background: rgba(15, 77, 50, 0.55);
   color: rgba(248, 244, 232, 0.96);
   border-color: rgba(232, 197, 71, 0.28);
+}
+
+.tab-mini {
+  flex: 0 0 auto;
+  min-width: 3.6rem;
+  min-height: 36px;
+  border-radius: 10px;
+  font-size: 0.66rem;
+  padding: 0 0.45rem;
 }
 
 .game-body {
@@ -301,16 +304,69 @@
   display: flex;
 }
 
+.table-wrap-sides {
+  padding: 0.65rem 0.4rem 0.45rem;
+}
+
 .table-grid {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.18fr) minmax(0, 1fr);
-  /* Ensure the top row can always fit a seat panel */
-  grid-template-rows: minmax(122px, 1fr) minmax(100px, 1.1fr) auto;
+  /* Ensure hero row is never squeezed out (CPU1 で hero がクリップされやすい) */
+  grid-template-rows: minmax(122px, 1fr) minmax(96px, 1fr) minmax(150px, auto);
   gap: 0.28rem 0.22rem;
   align-items: center;
+}
+
+.table-grid-sides {
+  grid-template-columns: minmax(0, 1fr) minmax(96px, 0.9fr) minmax(0, 1fr);
+  grid-template-rows: minmax(110px, 1fr) minmax(90px, 0.95fr) minmax(110px, 1fr);
+  gap: 0.26rem 0.22rem;
+  align-items: center;
+}
+
+.cell.seat.lt {
+  grid-column: 1;
+  grid-row: 1;
+}
+.cell.seat.rt {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+}
+.cell.seat.lm {
+  grid-column: 1;
+  grid-row: 2;
+}
+.cell.seat.rm {
+  grid-column: 3;
+  grid-row: 2;
+  justify-self: end;
+}
+.cell.seat.lb {
+  grid-column: 1;
+  grid-row: 3;
+}
+.cell.seat.rb {
+  grid-column: 3;
+  grid-row: 3;
+  justify-self: end;
+}
+.table-grid-sides .cell.pot {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: center;
+}
+
+/* CPU1: reduce empty vertical space so hero stays visible */
+.table-wrap.cpu-1 {
+  padding-top: 0.6rem;
+  padding-bottom: 0.4rem;
+}
+.table-wrap.cpu-1 .table-grid {
+  grid-template-rows: minmax(112px, 1fr) minmax(86px, 0.9fr) minmax(150px, auto);
 }
 
 .cell.seat.tl {
@@ -508,12 +564,14 @@
   color: #0f172a;
   border: 1px solid rgba(0, 0, 0, 0.15);
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.08rem 0.12rem;
+  justify-content: center;
+  gap: 0.05rem;
+  padding: 0.08rem 0.06rem;
   box-sizing: border-box;
   font-weight: 900;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   flex: 0 0 auto;
 }
 
@@ -538,7 +596,11 @@
   color: #0f172a;
 }
 .card .suit {
-  font-size: 0.76em;
+  font-size: 0.78em;
+  line-height: 1;
+}
+.card .rank {
+  line-height: 1;
 }
 
 .seat-card-foot {
@@ -693,6 +755,27 @@
 .support-ai {
   color: rgba(201, 184, 150, 0.95);
 }
+.ai-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  gap: 0.35rem;
+  align-items: start;
+}
+.ai-divider {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(232, 197, 71, 0.22);
+}
+.ai-col {
+  min-width: 0;
+}
+.ai-col-head {
+  font-weight: 900;
+  font-size: 0.64rem;
+  color: rgba(248, 244, 232, 0.92);
+  margin: 0.02rem 0 0.18rem;
+  white-space: nowrap;
+}
 .ai-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -708,6 +791,7 @@
   color: rgba(248, 244, 232, 0.9);
   font-weight: 800;
 }
+/* legacy spacer (kept harmless if referenced elsewhere) */
 .ai-spacer {
   height: 0.35rem;
 }
@@ -794,7 +878,34 @@
 .table-wrap.cpu-5 .seat-panel {
   font-size: 0.66rem;
 }
+.table-wrap.cpu-5 .seat-panel.seat--cpu {
+  /* Compact CPU seats so hero never disappears on portrait screens */
+  --card-w: 1.35rem;
+  --card-h: 1.85rem;
+  --hand-gap: 0.08rem;
+  padding: 0.16rem 0.22rem 0.18rem;
+}
+.table-wrap.cpu-5 .seat-panel.seat--cpu .seat-head {
+  margin-bottom: 0.12rem;
+}
+.table-wrap.cpu-5 .seat-panel.seat--cpu .seat-card-foot {
+  height: 2.1rem;
+  min-height: 2.1rem;
+  padding: 0.08rem 0.18rem;
+}
+.table-wrap.cpu-5 .table-grid {
+  /* Slightly tighter top/middle rows; keep hero min height */
+  grid-template-rows: minmax(110px, 1fr) minmax(84px, 0.9fr) minmax(156px, auto);
+}
+.table-wrap.cpu-5 .pot-plate {
+  padding: 0.14rem 0.5rem;
+}
 .table-wrap.cpu-5 .seat-panel.seat--folded {
   transform: scale(0.92);
   transform-origin: center top;
+}
+
+/* CPU5 in sides layout: keep everything inside */
+.table-wrap.cpu-5 .table-grid-sides {
+  grid-template-rows: minmax(100px, 1fr) minmax(86px, 0.95fr) minmax(112px, 1fr);
 }

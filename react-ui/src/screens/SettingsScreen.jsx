@@ -24,6 +24,19 @@ export function SettingsScreen({ settings, onChange, onStart, onBack }) {
 
         <div className="panel">
           <div className="form-grid">
+            <Field label="あなた席（表示位置）">
+              <select
+                value={settings.playerSeatPosition ?? "right-bottom"}
+                onChange={(e) => onChange({ playerSeatPosition: e.target.value })}
+              >
+                <option value="right-bottom">右下</option>
+                <option value="right-middle">右中央</option>
+                <option value="right-top">右上</option>
+                <option value="left-bottom">左下</option>
+                <option value="left-middle">左中央</option>
+                <option value="left-top">左上</option>
+              </select>
+            </Field>
             <Field label="CPU人数">
               <select value={settings.cpuCount} onChange={(e) => onChange({ cpuCount: Number(e.target.value) })}>
                 {[1, 2, 3, 4, 5].map((n) => (

@@ -45,6 +45,7 @@ export function createInitialGameState(options = {}) {
   const smallBlind = Number(options.smallBlind ?? options.sb ?? 10);
   const bigBlind = Number(options.bigBlind ?? options.bb ?? 20);
   const betUnit = Number(options.betUnit ?? 20);
+  const playerSeatPosition = String(options.playerSeatPosition ?? "right-bottom");
 
   const players = createPlayers(cpuCount, startChips);
   const n = players.length;
@@ -57,7 +58,7 @@ export function createInitialGameState(options = {}) {
 
   return {
     view: { cpuChoices: [1, 3, 5], cpuCount, isShowdown: false },
-    settings: { cpuCount, startChips, ante, betUnit, blindsOn: !!blindsOn, smallBlind, bigBlind },
+    settings: { cpuCount, startChips, ante, betUnit, blindsOn: !!blindsOn, smallBlind, bigBlind, playerSeatPosition },
     hud: { ante, sb: smallBlind, bb: bigBlind, cpuCount, blindsOn: !!blindsOn },
 
     // core-ish state (future migration targets)
@@ -544,6 +545,7 @@ export function applyGameAction(state, action) {
       smallBlind: state.settings.smallBlind,
       bigBlind: state.settings.bigBlind,
       betUnit: state.settings.betUnit,
+      playerSeatPosition: state.settings.playerSeatPosition,
       blindRotateIndex: (Number(state.blindRotateIndex ?? 0) || 0) + 1,
       handResultSeq: state.handResultSeq || 0,
     });

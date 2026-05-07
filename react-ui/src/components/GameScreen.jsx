@@ -4,7 +4,6 @@ import { MiniLog } from "./MiniLog.jsx";
 import { SupportAi } from "./SupportAi.jsx";
 import { HandRankPanel } from "./HandRankPanel.jsx";
 import { ActionButtons } from "./ActionButtons.jsx";
-import { EngineDebugPanel } from "./EngineDebugPanel.jsx";
 import { ResultsPanel } from "./ResultsPanel.jsx";
 import "./game.css";
 import { selectMiniLogViewModel } from "../selectors/resultViewModel.js";
@@ -32,15 +31,7 @@ export function GameScreen({ mock, onExit }) {
     triple: !canAct,
   };
 
-  const tabs = useMemo(
-    () => [
-      { id: "play", label: "プレイ" },
-      { id: "log", label: "ログ" },
-      { id: "results", label: "結果" },
-      { id: "debug", label: "デバッグ" },
-    ],
-    []
-  );
+  const tabs = useMemo(() => [{ id: "play", label: "プレイ" }, { id: "log", label: "ログ" }, { id: "results", label: "結果" }], []);
 
   return (
     <section className="game" aria-label="ゲーム画面（モック）">
@@ -62,36 +53,21 @@ export function GameScreen({ mock, onExit }) {
                 トップ
               </button>
             ) : null}
-            CPU {mock.hud.cpuCount}人
-            {canControl ? (
-              <span className="hud-actions">
-                <button type="button" className="hud-btn" onClick={() => mock.dispatch({ type: "NEW_HAND" })}>
-                  新しいハンド
+            <div className="hud-tabs" role="tablist" aria-label="ゲーム内タブ">
+              {tabs.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === t.id}
+                  className={`tab tab-mini ${tab === t.id ? "is-active" : ""}`}
+                  onClick={() => setTab(t.id)}
+                >
+                  {t.label}
                 </button>
-                <button type="button" className="hud-btn" onClick={() => mock.dispatch({ type: "ADVANCE_STREET" })}>
-                  次のストリート
-                </button>
-                <button type="button" className="hud-btn" onClick={() => mock.dispatch({ type: "FORCE_SHOWDOWN" })}>
-                  ショーダウン
-                </button>
-              </span>
-            ) : null}
+              ))}
+            </div>
           </div>
-        </div>
-
-        <div className="game-tabs" role="tablist" aria-label="ゲーム内タブ（モック）">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.id}
-              className={`tab ${tab === t.id ? "is-active" : ""}`}
-              onClick={() => setTab(t.id)}
-            >
-              {t.label}
-            </button>
-          ))}
         </div>
       </header>
 
@@ -101,11 +77,14 @@ export function GameScreen({ mock, onExit }) {
             <GameTable mock={mock} />
           ) : tab === "results" ? (
             <div className="panel-filler panel-filler-scroll" role="tabpanel">
-              <ResultsPanel state={mock} />
-            </div>
-          ) : tab === "debug" ? (
-            <div className="panel-filler panel-filler-scroll" role="tabpanel">
-              <EngineDebugPanel state={mock} />
+              <ResultsPanel
+                state={mock}
+                onNewHand={
+                  canControl
+                    ? () => mock.dispatch({ type: "NEW_HAND" })
+                    : null
+                }
+              />
             </div>
           ) : tab === "log" ? (
             <div className="panel-filler panel-filler-scroll" role="tabpanel" aria-label="詳細ログ">

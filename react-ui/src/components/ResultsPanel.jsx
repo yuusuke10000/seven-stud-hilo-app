@@ -25,7 +25,7 @@ function joinSeats(state, ids) {
   return (ids || []).map((i) => seatNameById(state, i)).join("、") || "—";
 }
 
-export function ResultsPanel({ state }) {
+export function ResultsPanel({ state, onNewHand }) {
   const r = state?.lastResult;
   const n = state?.players?.length || 0;
   if (!r) {
@@ -47,6 +47,13 @@ export function ResultsPanel({ state }) {
 
   return (
     <div className="results-panel" aria-label="結果（簡易）">
+      {typeof onNewHand === "function" ? (
+        <div className="results-block">
+          <button type="button" className="hud-btn" onClick={onNewHand}>
+            新しいハンド
+          </button>
+        </div>
+      ) : null}
       <div className="results-block">
         <div className="results-title">ポット内訳</div>
         <div className="results-lines">

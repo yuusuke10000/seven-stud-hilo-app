@@ -31,8 +31,18 @@ export function defaultSettings() {
     blindsOn: true,
     smallBlind: 10,
     bigBlind: 20,
+    playerSeatPosition: "right-bottom",
   };
 }
+
+const PLAYER_SEAT_POSITIONS = [
+  "right-bottom",
+  "right-middle",
+  "right-top",
+  "left-bottom",
+  "left-middle",
+  "left-top",
+];
 
 function normalizeBlinds(sb, bb, d) {
   const smallBlind = [5, 10, 20].includes(Number(sb)) ? Number(sb) : d.smallBlind;
@@ -61,6 +71,7 @@ export function loadSettings() {
   const sound = o.sound === true ? true : o.sound === false ? false : d.sound;
   const foldConfirm = o.foldConfirm === false ? false : o.foldConfirm === true ? true : d.foldConfirm;
   const blindsOn = o.blindsOn === false ? false : o.blindsOn === true ? true : d.blindsOn;
+  const playerSeatPosition = PLAYER_SEAT_POSITIONS.includes(o.playerSeatPosition) ? o.playerSeatPosition : d.playerSeatPosition;
   const { smallBlind, bigBlind } = normalizeBlinds(o.smallBlind, o.bigBlind, d);
   return {
     cpuCount,
@@ -75,6 +86,7 @@ export function loadSettings() {
     blindsOn,
     smallBlind,
     bigBlind,
+    playerSeatPosition,
   };
 }
 

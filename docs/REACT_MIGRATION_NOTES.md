@@ -174,6 +174,13 @@ React 版では **`react-ui/src/storage/localStorage.js`** で読み書きして
 
 静的版で保存した settings は React で読み込み可能。React で保存したものも静的版で読み込み可能（キー・フィールド集合は同一）。
 
+#### 追加（React UI のみ）
+
+- `playerSeatPosition`: あなた席の表示位置（UI レイアウト用）
+  - 値: `right-bottom` / `right-middle` / `right-top` / `left-bottom` / `left-middle` / `left-top`
+  - デフォルト: `right-bottom`
+  - 静的版には存在しないが、静的版側は未参照のため **読み込みが壊れない**前提
+
 ### 7.2 stats（`studHiloLearn_stats_v3` / `studHiloLearn_stats_v2`）
 
 | 項目 | 静的版 | React 版（調整後） | 備考 |
