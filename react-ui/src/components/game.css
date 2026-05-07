@@ -296,7 +296,8 @@
   border: 1px solid rgba(232, 197, 71, 0.18);
   border-radius: 14px;
   background: rgba(15, 77, 50, 0.22);
-  padding: 0.45rem 0.45rem 0.5rem;
+  /* Extra top padding prevents top CPU seats from being clipped on wide screens */
+  padding: 0.85rem 0.45rem 0.5rem;
   display: flex;
 }
 
@@ -306,7 +307,8 @@
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.18fr) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) minmax(90px, 1.1fr) auto;
+  /* Ensure the top row can always fit a seat panel */
+  grid-template-rows: minmax(122px, 1fr) minmax(100px, 1.1fr) auto;
   gap: 0.28rem 0.22rem;
   align-items: center;
 }
