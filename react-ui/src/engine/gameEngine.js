@@ -38,7 +38,7 @@ export function createDeckForHand(random = Math.random) {
 }
 
 export function createInitialGameState(options = {}) {
-  const cpuCount = clamp(options.cpuCount ?? 5, 1, 5);
+  const cpuCount = clamp(options.cpuCount ?? 1, 1, 5);
   const startChips = Number(options.startChips ?? 1000);
   const ante = Number(options.ante ?? 10);
   const blindsOn = options.blindsOn ?? true;
@@ -380,14 +380,17 @@ function resolveIfFoldSurvivor(state) {
   const alive = activeSeatIds(state);
   if (alive.length !== 1) return state;
   const winner = alive[0];
+  const n = state.players.length;
+  const payAmt = state.pot.amount;
   // Everyone else folded. Winner receives whole pot.
   const stacks = state.stacks.slice();
-  stacks[winner] += state.pot.amount;
+  stacks[winner] += payAmt;
+  const awards = Array.from({ length: n }, (_, i) => (i === winner ? payAmt : 0));
   const lastResult = {
     kind: "fold_survivor",
     winnerSeatId: winner,
-    awards: stacks.map((_, i) => (i === winner ? state.pot.amount : 0)),
-    pot: state.pot.amount,
+    potStart: payAmt,
+    awards,
   };
   const st = {
     ...state,
@@ -623,10 +626,53 @@ export function showdownAndPayoutForReact(state) {
   const stacks = state.stacks.slice();
   for (let i = 0; i < n; i++) stacks[i] += awards[i] || 0;
 
+  const potStart = potDetails.reduce((a, p) => a + (Number(p.amount) || 0), 0);
+
+  const alive = [];
+  for (let i = 0; i < n; i++) if (!folded[i]) alive.push(i);
+  for (const i of alive) {
+    if (hiEvals[i] == null) hiEvals[i] = bestHighFromSeven(state.hands[i]);
+  }
+  let bestHiKeyG = null;
+  for (const i of alive) {
+    const hi = hiEvals[i];
+    if (!bestHiKeyG || compareKeysHigh(hi.key, bestHiKeyG) > 0) bestHiKeyG = hi.key;
+  }
+  const highWinnersGlobal = alive.filter((i) => compareKeysHigh(hiEvals[i].key, bestHiKeyG) === 0);
+
+  const qualG = [];
+  for (const i of alive) {
+    let lo = loEvals[i];
+    if (lo === undefined) lo = bestLowFromSeven(state.hands[i]);
+    loEvals[i] = lo;
+    if (lo) qualG.push({ i, low: lo });
+  }
+  let lowWinnersGlobal = [];
+  let lowOkGlobal = false;
+  if (qualG.length) {
+    lowOkGlobal = true;
+    let bestK = qualG[0].low.key;
+    for (const q of qualG) {
+      if (compareLowKeys(q.low.key, bestK) < 0) bestK = q.low.key;
+    }
+    lowWinnersGlobal = qualG.filter((q) => compareLowKeys(q.low.key, bestK) === 0).map((q) => q.i);
+  }
+
+  const scoopGlobal =
+    lowOkGlobal &&
+    highWinnersGlobal.length === 1 &&
+    lowWinnersGlobal.length === 1 &&
+    highWinnersGlobal[0] === lowWinnersGlobal[0];
+
   const lastResult = {
     kind: "showdown",
+    potStart,
     potDetails,
     awards,
+    highWinners: highWinnersGlobal,
+    lowWinners: lowWinnersGlobal,
+    lowOk: lowOkGlobal,
+    scoop: scoopGlobal,
     hiEvals: hiEvals.map((h) => (h ? { nameJa: h.nameJa, detailJa: h.detailJa } : null)),
     loEvals: loEvals.map((l) => (l ? { ladderJa: lowLadderShortJa(l), labelJa: l.labelJa } : null)),
   };
@@ -689,6 +735,14 @@ function finalizeHand(state) {
       allIn: state.allIn.slice(),
       hiEvals: state.lastResult?.hiEvals || null,
       loEvals: state.lastResult?.loEvals || null,
+      winnerSeatId: state.lastResult?.winnerSeatId ?? null,
+      potStart: state.lastResult?.potStart ?? null,
+      highWinners: state.lastResult?.highWinners ?? null,
+      lowWinners: state.lastResult?.lowWinners ?? null,
+      lowOk: state.lastResult?.lowOk ?? false,
+      scoop: state.lastResult?.scoop ?? false,
+      handSbSeat: state.handSbSeat,
+      handBbSeat: state.handBbSeat,
     },
     mockResult: {
       miniLog: items,

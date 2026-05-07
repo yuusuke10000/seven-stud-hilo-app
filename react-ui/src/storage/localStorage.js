@@ -12,12 +12,6 @@ function safeParse(raw, fallback) {
   }
 }
 
-function clampInt(v, lo, hi, fallback) {
-  const n = Number(v);
-  if (!Number.isFinite(n)) return fallback;
-  return Math.min(hi, Math.max(lo, Math.trunc(n)));
-}
-
 function pickOne(v, allowed, fallback) {
   const n = Number(v);
   return allowed.includes(n) ? n : fallback;
@@ -25,7 +19,7 @@ function pickOne(v, allowed, fallback) {
 
 export function defaultSettings() {
   return {
-    cpuCount: 5,
+    cpuCount: 1,
     startChips: 1000,
     ante: 10,
     betUnit: 20,
@@ -54,7 +48,10 @@ export function loadSettings() {
   const d = defaultSettings();
   const o = safeParse(globalThis?.localStorage?.getItem?.(SETTINGS_KEY), null);
   if (!o) return d;
-  const cpuCount = clampInt(o.cpuCount, 1, 5, d.cpuCount);
+  const rawCpu = Number(o.cpuCount);
+  const cpuCount = Number.isFinite(rawCpu)
+    ? Math.min(5, Math.max(1, rawCpu))
+    : d.cpuCount;
   const startChips = pickOne(o.startChips, [500, 1000, 2000], d.startChips);
   const ante = pickOne(o.ante, [5, 10, 20], d.ante);
   const betUnit = pickOne(o.betUnit, [10, 20, 50], d.betUnit);
@@ -180,6 +177,92 @@ export function pushHistory(entry) {
   h.unshift(entry);
   saveHistory(h);
   return h;
+}
+
+/** Static app.js seatLabel と同じ（あなた / CPU n） */
+export function historySeatLabel(seatId) {
+  if (seatId === 0) return "あなた";
+  return `CPU ${seatId}`;
+}
+
+/**
+ * 静的版 app.js の pushHistory 1 件と同じフィールド形。
+ * 既存 React 用の任意フィールド（id, summary 等）は付けない（静的版が読んでも無害な最小形）。
+ */
+export function buildHistoryEntryForStorage(just) {
+  if (!just) return null;
+  const awards = Array.isArray(just.awards) ? just.awards.map((x) => Number(x) || 0) : [];
+  const pA = Number(awards[0]) || 0;
+  let playerResult = "Lose";
+  if (just.folded?.[0]) playerResult = "Fold";
+  else if (just.kind === "showdown") {
+    const maxA = awards.length ? Math.max(...awards) : 0;
+    if (pA === 0) playerResult = "Lose";
+    else if (pA === maxA && maxA > 0) {
+      const cnt = awards.filter((x) => x === maxA).length;
+      playerResult = cnt === 1 ? "Win" : "Split";
+    } else playerResult = "Lose";
+  } else if (just.kind === "fold_survivor") {
+    const w =
+      just.winnerSeatId != null && just.winnerSeatId >= 0
+        ? just.winnerSeatId
+        : awards.findIndex((x) => Number(x) > 0);
+    playerResult = w === 0 ? "Win" : "Lose";
+  }
+
+  const potLayers = Array.isArray(just.potDetails) ? just.potDetails.length : 1;
+  const potStart =
+    just.potStart != null && Number.isFinite(Number(just.potStart))
+      ? Number(just.potStart)
+      : Array.isArray(just.potDetails)
+        ? just.potDetails.reduce((a, p) => a + (Number(p.amount) || 0), 0)
+        : 0;
+
+  let highWinners = "—";
+  let lowWinners = "—";
+  let scoop = false;
+  if (just.kind === "showdown") {
+    const hw = Array.isArray(just.highWinners) ? just.highWinners : [];
+    highWinners = hw.map(historySeatLabel).join(", ");
+    lowWinners = just.lowOk ? (Array.isArray(just.lowWinners) ? just.lowWinners.map(historySeatLabel).join(", ") : "—") : "—";
+    scoop = !!just.scoop;
+  } else if (just.kind === "fold_survivor") {
+    const w =
+      just.winnerSeatId != null && just.winnerSeatId >= 0
+        ? just.winnerSeatId
+        : awards.findIndex((x) => Number(x) > 0);
+    highWinners = w >= 0 ? historySeatLabel(w) : "—";
+    lowWinners = "—";
+    scoop = false;
+  }
+
+  const hiP = just.kind === "showdown" && just.hiEvals?.[0];
+  const loP = just.kind === "showdown" && just.loEvals?.[0];
+  const playerHigh = hiP ? `${hiP.nameJa} (${hiP.detailJa})` : "—";
+  const playerLowOk = !!(just.kind === "showdown" && loP);
+
+  const blindsOn = !!just.blindsOn;
+  const handSb = Number(just.handSbSeat);
+  const handBb = Number(just.handBbSeat);
+
+  return {
+    at: just.at || new Date().toISOString(),
+    cpuCount: just.cpuCount ?? 1,
+    pot: potStart,
+    highWinners,
+    lowWinners,
+    scoop,
+    playerResult,
+    playerHigh,
+    playerLowOk,
+    blindsOn,
+    smallBlind: blindsOn ? just.smallBlind : null,
+    bigBlind: blindsOn ? just.bigBlind : null,
+    sbSeat: blindsOn && Number.isFinite(handSb) && handSb >= 0 ? historySeatLabel(handSb) : null,
+    bbSeat: blindsOn && Number.isFinite(handBb) && handBb >= 0 ? historySeatLabel(handBb) : null,
+    hasSidePots: potLayers > 1,
+    sidePotCount: potLayers,
+  };
 }
 
 export function getStorageKeys() {
