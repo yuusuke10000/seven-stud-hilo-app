@@ -20,15 +20,17 @@ export default defineConfig(({ command }) => {
         // PWA assets placed in public/
         includeAssets: ["icon.svg", "favicon.svg"],
         manifest: {
-          name: "スタッド・ハイロー トレーナー",
-          short_name: "スタッドHiLo",
-          description: "セブンカードスタッド・ハイロー（8オアベター）の学習用。オフライン・仮想チップのみ。",
+          // NOTE: Keep ASCII to avoid any encoding surprises in some environments.
+          name: "Stud Hi-Lo Trainer",
+          short_name: "Stud HiLo",
+          description: "Seven Card Stud Hi-Lo trainer",
           start_url: pagesBase,
           scope: pagesBase,
           display: "standalone",
           orientation: "portrait-primary",
           theme_color: "#1a0f08",
           background_color: "#120a06",
+          lang: "ja",
           icons: [
             {
               // manifest と同じディレクトリ基準（project site 配下でも解決される）
